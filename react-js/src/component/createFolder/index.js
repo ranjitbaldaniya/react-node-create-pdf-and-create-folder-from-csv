@@ -17,6 +17,8 @@ import * as XLSX from "xlsx";
 const CreateFolder = () => {
   const [error, setError] = useState(null);
   const [excelData, setExcelData] = useState([]);
+  console.log("excelData path ===>", excelData);
+
   const [selectedDoctors, setSelectedDoctors] = useState([]);
   console.log("selectedDoctors path ===>", selectedDoctors);
 
@@ -40,8 +42,34 @@ const CreateFolder = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
         console.log("parsed xlsx data ===>", parsedData);
+
+        // Filter out rows with empty data
+        const filteredData = parsedData.filter(
+          (row) =>
+            row.length > 0 &&
+            row.some((cell) => cell !== null && cell !== undefined)
+        );
+
+        // Group data based on "Today's Date" column
+        const groupedData = {};
+        let currentDate;
+        filteredData.forEach((row) => {
+          if (row[1] !== "Today's Date") {
+            // Check if it's not a header row
+            const date = row[1];
+            if (date !== currentDate) {
+              currentDate = date;
+              groupedData[date] = [];
+            }
+            groupedData[currentDate].push(row); // Remove the "Today's Date" column
+          }
+        });
+
+        console.log("Grouped data based on Today's Date:", groupedData);
+
+        console.log("Grouped data based on Today's Date:==>", groupedData['03.01.2024']);
+
         const docIdIndex = parsedData[0].indexOf("DOC ID");
         const doctorNameIndex = parsedData[0].indexOf("Doctor name");
         const todaysDateIndex = parsedData[0].indexOf("Today's Date");
@@ -56,8 +84,11 @@ const CreateFolder = () => {
           patientName: row[patientNameIndex],
           vendor: row[vendorIndex],
         }));
+        const filteredDocArray = doctorsArray.filter(row => row.todaysDate === '03.01.2024');
+        groupedData['03.01.2024'] = filteredData;
 
-        setExcelData(doctorsArray);
+
+        setExcelData(filteredDocArray);
         setLoading(false);
       };
       reader.readAsArrayBuffer(file);
@@ -210,6 +241,7 @@ const CreateFolder = () => {
                           >
                             {doctor.doctorName} - {doctor.docId}
                           </label>
+                          <p>Patient Name :- {doctor.patientName}</p>
                         </CardBody>
                       </Card>
                     </Col>
