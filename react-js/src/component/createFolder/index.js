@@ -68,7 +68,10 @@ const CreateFolder = () => {
 
         console.log("Grouped data based on Today's Date:", groupedData);
 
-        console.log("Grouped data based on Today's Date:==>", groupedData['03.01.2024']);
+        console.log(
+          "Grouped data based on Today's Date:==>",
+          groupedData["03.01.2024"]
+        );
 
         const docIdIndex = parsedData[0].indexOf("DOC ID");
         const doctorNameIndex = parsedData[0].indexOf("Doctor name");
@@ -84,11 +87,13 @@ const CreateFolder = () => {
           patientName: row[patientNameIndex],
           vendor: row[vendorIndex],
         }));
-        const filteredDocArray = doctorsArray.filter(row => row.todaysDate === '03.01.2024');
-        groupedData['03.01.2024'] = filteredData;
-
+        const filteredDocArray = doctorsArray.filter(
+          (row) => row.todaysDate === "03.01.2024"
+        );
+        groupedData["03.01.2024"] = filteredData;
 
         setExcelData(filteredDocArray);
+
         setLoading(false);
       };
       reader.readAsArrayBuffer(file);
@@ -212,40 +217,70 @@ const CreateFolder = () => {
                   </Col>
                 </Row>
                 <Row>
-                  {excelData.map((doctor, index) => (
-                    <Col md={3} key={index}>
-                      <Card
-                        className="mb-3 "
-                        style={{ cursor: "pointer" }}
-                        onClick={() => handleDoctorCheckboxChange(doctor)}
-                      >
-                        <CardBody style={{ position: "relative" }}>
-                          <Input
-                            type="checkbox"
-                            id={`doctor-${doctor.docId}`}
-                            checked={selectedDoctors.some(
-                              (selectedDoctor) =>
-                                selectedDoctor.docId === doctor.docId
-                            )}
-                            onChange={() => handleDoctorCheckboxChange(doctor)}
-                            style={{
-                              position: "absolute",
-                              top: "-2px",
-                              right: "1px",
-                              cursor: "pointer",
-                            }}
-                          />
-                          <label
-                            htmlFor={`doctor-${doctor.docId}`}
-                            className="ml-2"
-                          >
-                            {doctor.doctorName} - {doctor.docId}
-                          </label>
-                          <p>Patient Name :- {doctor.patientName}</p>
-                        </CardBody>
-                      </Card>
-                    </Col>
-                  ))}
+                  {Array.from(
+                    new Set(excelData.map((doctor) => doctor.doctorName))
+                  ).map((doctorName, index) => {
+                    const doctorData = excelData.filter(
+                      (doctor) => doctor.doctorName === doctorName
+                    );
+                    console.log("doctor data ==>", doctorData);
+                    return (
+                      <Col md={12} key={index}>
+                        <Card className="mb-3">
+                          <CardBody>
+                            <h5>{doctorName}</h5>
+                            <div>
+                              <Row>
+                                {doctorData.map((doctor, index) => (
+                                  <Col md={3} key={index}>
+                                    <Card
+                                      className="mb-3 "
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() =>
+                                        handleDoctorCheckboxChange(doctor)
+                                      }
+                                    >
+                                      <CardBody
+                                        style={{ position: "relative" }}
+                                      >
+                                        <Input
+                                          type="checkbox"
+                                          id={`doctor-${doctor.docId}`}
+                                          checked={selectedDoctors.some(
+                                            (selectedDoctor) =>
+                                              selectedDoctor.docId ===
+                                              doctor.docId
+                                          )}
+                                          onChange={() =>
+                                            handleDoctorCheckboxChange(doctor)
+                                          }
+                                          style={{
+                                            position: "absolute",
+                                            top: "-2px",
+                                            right: "1px",
+                                            cursor: "pointer",
+                                          }}
+                                        />
+                                        <label
+                                          htmlFor={`doctor-${doctor.docId}`}
+                                          className="ml-2"
+                                        >
+                                          {doctor.doctorName} - {doctor.docId}
+                                        </label>
+                                        <p>
+                                          Patient Name :- {doctor.patientName}
+                                        </p>
+                                      </CardBody>
+                                    </Card>
+                                  </Col>
+                                ))}
+                              </Row>
+                            </div>
+                          </CardBody>
+                        </Card>
+                      </Col>
+                    );
+                  })}
                 </Row>
               </div>
             )
