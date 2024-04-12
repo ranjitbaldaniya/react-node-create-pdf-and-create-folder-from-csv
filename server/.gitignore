@@ -2,9 +2,8 @@
 
 # dependencies
 /node_modules
-/.pnp
+/pdfs
 .pnp.js
-/public/createPDF
 
 # testing
 /coverage

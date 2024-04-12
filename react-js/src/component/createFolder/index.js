@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Container,
   Row,
@@ -17,14 +18,14 @@ import * as XLSX from "xlsx";
 const CreateFolder = () => {
   const [error, setError] = useState(null);
   const [excelData, setExcelData] = useState([]);
-  console.log("excelData path ===>", excelData);
+  // console.log("excelData path ===>", excelData);
 
   const [selectedDoctors, setSelectedDoctors] = useState([]);
-  console.log("selectedDoctors path ===>", selectedDoctors);
+  // console.log("selectedDoctors ===>", selectedDoctors);
 
   const [selectedPath, setSelectedPath] = useState("");
 
-  console.log("selected path ===>", selectedPath);
+  // console.log("selected path ===>", selectedPath);
   const [loading, setLoading] = useState(false);
 
   const handleFileUpload = (event) => {
@@ -42,7 +43,7 @@ const CreateFolder = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        console.log("parsed xlsx data ===>", parsedData);
+        // console.log("parsed xlsx data ===>", parsedData);
 
         // Filter out rows with empty data
         const filteredData = parsedData.filter(
@@ -66,12 +67,12 @@ const CreateFolder = () => {
           }
         });
 
-        console.log("Grouped data based on Today's Date:", groupedData);
+        // console.log("Grouped data based on Today's Date:", groupedData);
 
-        console.log(
-          "Grouped data based on Today's Date:==>",
-          groupedData["03.01.2024"]
-        );
+        // console.log(
+        //   "Grouped data based on Today's Date:==>",
+        //   groupedData["03.01.2024"]
+        // );
 
         const docIdIndex = parsedData[0].indexOf("DOC ID");
         const doctorNameIndex = parsedData[0].indexOf("Doctor name");
@@ -115,19 +116,48 @@ const CreateFolder = () => {
   };
 
   const handleDoctorCheckboxChange = (selectedDoctor) => {
+    // console.log(" checkbox click ==>" , selectedDoctor)
+
     setSelectedDoctors((prevSelectedDoctors) => {
-      if (
-        prevSelectedDoctors.some(
-          (doctor) => doctor.docId === selectedDoctor.docId
-        )
-      ) {
-        return prevSelectedDoctors.filter(
-          (doctor) => doctor.docId !== selectedDoctor.docId
-        );
+      const index = prevSelectedDoctors.findIndex(
+        (doctor) => doctor.docId === selectedDoctor.docId
+      );
+      if (index !== -1) {
+        const updatedDoctors = [...prevSelectedDoctors];
+        updatedDoctors.splice(index, 1);
+        return updatedDoctors;
       } else {
         return [...prevSelectedDoctors, selectedDoctor];
       }
     });
+  };
+
+  const handleMasterCheckboxChange = (doctorName) => {
+    // console.log("master checkbox click ==>" , doctorName)
+    const doctorData = excelData.filter(
+      (doctor) => doctor.doctorName === doctorName
+    );
+    if (
+      doctorData.every((doctor) =>
+        selectedDoctors.some((selectedDoctor) =>
+          Object.is(selectedDoctor, doctor)
+        )
+      )
+    ) {
+      setSelectedDoctors((prevSelectedDoctors) =>
+        prevSelectedDoctors.filter(
+          (doctor) =>
+            !doctorData.some((selectedDoctor) =>
+              Object.is(doctor, selectedDoctor)
+            )
+        )
+      );
+    } else {
+      setSelectedDoctors((prevSelectedDoctors) => [
+        ...prevSelectedDoctors,
+        ...doctorData,
+      ]);
+    }
   };
 
   const handleCreateFolder = () => {
@@ -159,7 +189,12 @@ const CreateFolder = () => {
   return (
     <Container>
       <Row>
-        <Col md={12}>
+        <Col md={2} className="mt-5">
+          <Link to={"/"}>
+            <Button color="dark">Back</Button>
+          </Link>
+        </Col>
+        <Col md={10}>
           <div className="mt-5">
             <h1>Excel Folder Creator</h1>
             <input
@@ -223,12 +258,28 @@ const CreateFolder = () => {
                     const doctorData = excelData.filter(
                       (doctor) => doctor.doctorName === doctorName
                     );
-                    console.log("doctor data ==>", doctorData);
                     return (
                       <Col md={12} key={index}>
                         <Card className="mb-3">
                           <CardBody>
                             <h5>{doctorName}</h5>
+                            <Input
+                              type="checkbox"
+                              onChange={() =>
+                                handleMasterCheckboxChange(doctorName)
+                              }
+                              checked={doctorData.every((doctor) =>
+                                selectedDoctors.some((selectedDoctor) =>
+                                  Object.is(selectedDoctor, doctor)
+                                )
+                              )}
+                              style={{
+                                position: "absolute",
+                                top: "10px",
+                                right: "10px",
+                                cursor: "pointer",
+                              }}
+                            />
                             <div>
                               <Row>
                                 {doctorData.map((doctor, index) => (

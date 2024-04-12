@@ -18,7 +18,7 @@ const Home = () => {
             <div className="cardDiv">
               <Card body>
                 <CardTitle tag="h5">Create Folder</CardTitle>
-                <Link to={"/createfolder"}> <Button>Click here to create Folder</Button></Link>
+                <Link to={"/createfolder"}> <Button color="dark">Click here to create Folder</Button></Link>
               </Card>
             </div>
           </Col>
@@ -26,7 +26,7 @@ const Home = () => {
             <div className="cardDiv">
               <Card body>
                 <CardTitle tag="h5">Extract PDF</CardTitle>
-                <Link to={"/extractpdf"}> <Button>Click here to extract PDF</Button></Link>
+                <Link to={"/extractpdf"}> <Button color="dark">Click here to extract PDF</Button></Link>
               </Card>
             </div>
           </Col>
