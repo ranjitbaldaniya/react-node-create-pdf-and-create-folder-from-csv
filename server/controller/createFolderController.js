@@ -48,6 +48,16 @@ const createFolders = (req, res) => {
       if (!fs.existsSync(finalFolderPath)) {
         fs.mkdirSync(finalFolderPath, { recursive: true });
       }
+     // Copy the .docx files to the final folder
+        const docxFilePaths = [
+            path.join(__dirname, "DAIGNOSIS.docx"),
+          path.join(__dirname, "SPECIAL_INSTRUCTIONS.docx")
+        ];
+        docxFilePaths.forEach((docxFilePath) => {
+          const fileName = path.basename(docxFilePath);
+          const destinationPath = path.join(finalFolderPath, fileName);
+          fs.copyFileSync(docxFilePath, destinationPath);
+        })
     });
 
     return res.status(200).json({ message: "Folders created successfully" });

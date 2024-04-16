@@ -72,12 +72,6 @@ const UploadPDF = () => {
 
         // console.log("file path ==>", filePath);
         setCreatedPdfPath(filePath);
-        // // Clear all states upon successful PDF creation
-        // setPdfFile(null);
-        // setSelectedPages([]);
-        // setStartPage("");
-        // setEndPage("");
-        // setPageNumber(1);
       } else {
         console.error("Error creating PDF:", response.statusText);
       }
@@ -153,7 +147,7 @@ const UploadPDF = () => {
               onClick={handlePageSelection}
               disabled={startPage === "" || endPage === "" || loading} // Disable button when loading
             >
-              Select Pages
+              Confirm Pages
             </Button>
 
             <Button
