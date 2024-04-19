@@ -18,7 +18,8 @@ import * as XLSX from "xlsx";
 const CreateFolder = () => {
   const [error, setError] = useState(null);
   const [excelData, setExcelData] = useState([]);
-  // console.log("excelData path ===>", excelData);
+  // console.log("excelData  ===>", excelData);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [selectedDoctors, setSelectedDoctors] = useState([]);
   // console.log("selectedDoctors ===>", selectedDoctors);
@@ -51,23 +52,25 @@ const CreateFolder = () => {
             row.length > 0 &&
             row.some((cell) => cell !== null && cell !== undefined)
         );
+        // console.log("filteredData ===>", filteredData);
 
-        // Group data based on "Today's Date" column
+        const lastDate = filteredData[filteredData.length - 1][1];
+
+        // console.log("lastDate ===>", lastDate);
+
+        // Group data based on the last date
         const groupedData = {};
-        let currentDate;
         filteredData.forEach((row) => {
-          if (row[1] !== "Today's Date") {
-            // Check if it's not a header row
-            const date = row[1];
-            if (date !== currentDate) {
-              currentDate = date;
+          const date = row[1];
+          if (date === lastDate) {
+            if (!groupedData[date]) {
               groupedData[date] = [];
             }
-            groupedData[currentDate].push(row); // Remove the "Today's Date" column
+            groupedData[date].push(row);
           }
         });
 
-        // console.log("Grouped data based on Today's Date:", groupedData);
+        // console.log("Grouped data based on the last date:", groupedData);
 
         // console.log(
         //   "Grouped data based on Today's Date:==>",
@@ -89,12 +92,12 @@ const CreateFolder = () => {
           vendor: row[vendorIndex],
         }));
         const filteredDocArray = doctorsArray.filter(
-          (row) => row.todaysDate === "03.01.2024"
+          (row) => row.todaysDate === lastDate
         );
-        groupedData["03.01.2024"] = filteredData;
+        groupedData[lastDate] = filteredData;
 
         setExcelData(filteredDocArray);
-
+        setSuccessMessage("");
         setLoading(false);
       };
       reader.readAsArrayBuffer(file);
@@ -177,6 +180,7 @@ const CreateFolder = () => {
       if (!response.ok) {
         throw new Error("Failed to create folders");
       }
+      setSuccessMessage("Folders created successfully");
       handleRemoveFile();
     } catch (error) {
       console.error("Error creating folders:", error);
@@ -206,7 +210,15 @@ const CreateFolder = () => {
             {error && <div className="text-danger">{error}</div>}
           </div>
         </Col>
-
+      </Row>
+      {successMessage && (
+        <Row className="mt-2">
+          <Col md={{ size: 6, offset: 3 }}>
+            <p className="text-success">{successMessage}</p>
+          </Col>
+        </Row>
+      )}
+      <Row>
         <Col md={12} className="mt-5">
           {loading ? (
             <Spinner color="primary" />
@@ -278,6 +290,7 @@ const CreateFolder = () => {
                                 top: "10px",
                                 right: "10px",
                                 cursor: "pointer",
+                                border: "1px solid gray",
                               }}
                             />
                             <div>
@@ -310,16 +323,22 @@ const CreateFolder = () => {
                                             top: "-2px",
                                             right: "1px",
                                             cursor: "pointer",
+                                            // color:"red",
+                                            // background:"red"
+                                            border: "1px solid gray",
                                           }}
                                         />
-                                        <label
+                                        <p
                                           htmlFor={`doctor-${doctor.docId}`}
-                                          className="ml-2"
+                                          className="ml-2 fw-bold"
                                         >
                                           {doctor.doctorName} - {doctor.docId}
-                                        </label>
-                                        <p>
+                                        </p>
+                                        <p className="fw-bold">
                                           Patient Name :- {doctor.patientName}
+                                        </p>
+                                        <p className="fw-bold">
+                                          Date :- {doctor.todaysDate}
                                         </p>
                                       </CardBody>
                                     </Card>

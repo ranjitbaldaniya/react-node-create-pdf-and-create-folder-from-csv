@@ -1,64 +1,79 @@
 const { PDFDocument } = require("pdf-lib");
 const fs = require("fs").promises;
-const path = require("path"); // Import the path module
+const path = require("path");
 
 const createPdf = async (req, res) => {
-  // console.log("create pdf route call ==>", req.file);
-
   const { path: pdfFilePath } = req.file;
-  const selectedPages = JSON.parse(req.body.selectedPages);
-  // console.log(" selectedPages ==>", selectedPages, pdfFilePath);
+  const filesInfo = JSON.parse(req.body.selectedPages);
+  let pdfPath = req.body.pdfPath;
 
-  // Check if pdfFilePath is properly defined and proceed with processing the file
+  // console.log("filesInfo", filesInfo);
+  // console.log("pdfPath", pdfPath);
+
   if (!pdfFilePath) {
     return res.status(400).send("PDF file path is missing");
   }
 
   try {
-    // Read the PDF file using its path property
+    // Read the PDF file
     const pdfBytes = await fs.readFile(pdfFilePath);
-    // console.log(" pdfBytes ==>", pdfBytes);
-
-    // Create a new PDFDocument
     const pdfDoc = await PDFDocument.load(pdfBytes);
-    // console.log(" pdfDoc ==>", pdfDoc );
 
-    // Check if any pages are selected
-    if (!selectedPages || selectedPages.length === 0) {
-      throw new Error("No pages selected");
+    if (!filesInfo || filesInfo.length === 0) {
+      throw new Error("No files info provided");
     }
 
-    // Create a new PDF containing only selected pages
-    const newPdfDoc = await PDFDocument.create();
-    // console.log(" newPdfDoc ==>", newPdfDoc );
+    // Remove trailing slash from pdfPath
+    // console.log("pdfPath========>", pdfPath.slice(1, -1));
 
-    for (const pageNumber of selectedPages) {
-      const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [pageNumber - 1]);
-      newPdfDoc.addPage(copiedPage);
-    }
+    pdfPath = path.normalize( pdfPath.slice(1, -1));
+    // console.log("pdfPath===>", pdfPath);
+
+    // Create a new PDF containing selected pages for each file
+    for (const fileInfo of filesInfo) {
+      const startPage = parseInt(fileInfo.startPage);
+      const endPage = parseInt(fileInfo.endPage);
+
+      if (!startPage || !endPage) {
+        throw new Error("Invalid start page or end page");
+      }
+
+      if (
+        startPage > endPage ||
+        startPage < 1 ||
+        endPage > pdfDoc.getPageCount()
+      ) {
+        throw new Error("Invalid page range");
+      }
+
+      // Create a new PDF containing only selected pages
+      const newPdfDoc = await PDFDocument.create();
+
+      for (let i = startPage; i <= endPage; i++) {
+        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i - 1]);
+        newPdfDoc.addPage(copiedPage);
+      }
 
       // Serialize the new PDF to bytes
-    const newPdfBytes = await newPdfDoc.save();
+      const newPdfBytes = await newPdfDoc.save();
 
-    // Create the directory if it doesn't exist
-    // const directoryPath = path.join(__dirname, "createdPdf");
-    const directoryPath = path.join(__dirname, "../../react-js/public/createdPDF");
-    // console.log(" directoryPath ==>", directoryPath);
+      // Use path.join() to concatenate directory paths safely
+      const directoryPath = pdfPath;
+      console.log("directoryPath===>", directoryPath);
+      
+      // Ensure the directory exists
+      await fs.mkdir(directoryPath, { recursive: true });
 
-    await fs.mkdir(directoryPath, { recursive: true });
+      // Define the path for the created PDF file
+      const fileName = `${fileInfo.name}.pdf`;
+      const filePath = path.join(directoryPath, fileName);
+      // console.log("filePath===>", filePath);
+      
+      // Write the PDF bytes to the file system
+      await fs.writeFile(filePath, newPdfBytes);
+    }
 
-    // Create a unique filename for the created PDF
-    const fileName = `created_${Date.now()}.pdf`;
-
-    // Define the path for the created PDF file
-    const filePath = path.join(directoryPath, fileName);
-
-    // Write the PDF bytes to the file system
-    await fs.writeFile(filePath, newPdfBytes);
-
-    // Send the path of the created PDF file in the response
-    res.status(200).send({ filePath });
-
+    res.status(200).json({ message: "PDFs created successfully" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).send("Internal Server Error");

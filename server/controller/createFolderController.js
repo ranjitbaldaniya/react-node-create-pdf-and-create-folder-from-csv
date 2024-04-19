@@ -3,7 +3,7 @@ const path = require("path");
 
 const createFolders = (req, res) => {
   const { selectedDoctors, selectedPath } = req.body;
-
+  // console.log("1412===>", "==>" ,selectedPath )
   if (!Array.isArray(selectedDoctors)) {
     return res.status(400).json({ error: "Invalid request body" });
   }
@@ -13,6 +13,7 @@ const createFolders = (req, res) => {
 
     const existingDoctorNames = fs.readdirSync(appFolderPath);
 
+    // console.log("existingDoctorNames==>",existingDoctorNames)
     selectedDoctors.forEach((doctor) => {
       const doctorFolderName = `${doctor.doctorName}`;
       if (existingDoctorNames.includes(doctorFolderName)) {
@@ -30,34 +31,43 @@ const createFolders = (req, res) => {
         fs.mkdirSync(dateFolderPath, { recursive: true });
       }
 
-      const existingVendorNames = fs.readdirSync(dateFolderPath);
-
-      const vendorFolderPath = path.join(dateFolderPath, doctor.vendor);
-      if (!existingVendorNames.includes(doctor.vendor)) {
-        fs.mkdirSync(vendorFolderPath, { recursive: true });
+      let vendorFolderPath;
+      if (doctor.vendor === "Geico") {
+        vendorFolderPath = path.join(dateFolderPath, "Geico");
+      } else {
+        // Create a 'non-geico' folder and place the vendor folder inside it
+        const nonGeicoFolderPath = path.join(dateFolderPath, "Non-Geico");
+        if (!fs.existsSync(nonGeicoFolderPath)) {
+          fs.mkdirSync(nonGeicoFolderPath, { recursive: true });
+        }
+        vendorFolderPath = path.join(nonGeicoFolderPath, doctor.vendor);
       }
 
-      const reportType = doctor.reportType === "Retrospective" ? "Resrospective" : "Prospective";
+      const reportType =
+        doctor.reportType === "Retrospective" ? "Resrospective" : "Prospective";
       const reportTypeFolderPath = path.join(vendorFolderPath, reportType);
 
       if (!fs.existsSync(reportTypeFolderPath)) {
         fs.mkdirSync(reportTypeFolderPath, { recursive: true });
       }
 
-      const finalFolderPath = path.join(reportTypeFolderPath, `${doctor.docId} ${doctor.patientName}`);
+      const finalFolderPath = path.join(
+        reportTypeFolderPath,
+        `${doctor.docId} ${doctor.patientName}`
+      );
       if (!fs.existsSync(finalFolderPath)) {
         fs.mkdirSync(finalFolderPath, { recursive: true });
       }
-     // Copy the .docx files to the final folder
-        const docxFilePaths = [
-            path.join(__dirname, "DAIGNOSIS.docx"),
-          path.join(__dirname, "SPECIAL_INSTRUCTIONS.docx")
-        ];
-        docxFilePaths.forEach((docxFilePath) => {
-          const fileName = path.basename(docxFilePath);
-          const destinationPath = path.join(finalFolderPath, fileName);
-          fs.copyFileSync(docxFilePath, destinationPath);
-        })
+      // Copy the .docx files to the final folder
+      const docxFilePaths = [
+        path.join(__dirname, "DAIGNOSIS.docx"),
+        path.join(__dirname, "SPECIAL_INSTRUCTIONS.docx"),
+      ];
+      docxFilePaths.forEach((docxFilePath) => {
+        const fileName = path.basename(docxFilePath);
+        const destinationPath = path.join(finalFolderPath, fileName);
+        fs.copyFileSync(docxFilePath, destinationPath);
+      });
     });
 
     return res.status(200).json({ message: "Folders created successfully" });
@@ -68,5 +78,5 @@ const createFolders = (req, res) => {
 };
 
 module.exports = {
-  createFolders
+  createFolders,
 };

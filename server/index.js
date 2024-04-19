@@ -6,7 +6,6 @@ const multer = require("multer");
 const { editPdf } = require("./controller/editPdf");
 
 const app = express();
-const hostName = "0.0.0.0";
 const PORT = process.env.PORT || 3001;
 const upload = multer({ dest: "pdfs/" });
 
@@ -20,6 +19,6 @@ app.get("/", editPdf);
 app.use("/", createFolderRoutes);
 app.use("/", upload.single("pdfFile"), createPdfRoutes);
 
-app.listen(PORT, hostName, () => {
-  console.log(`Server is running on http://localhost:${PORT , hostName}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT }`);
 });
