@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { Link } from "react-router-dom";
 import { Container, Row, Col, Button, Input } from "reactstrap";
@@ -16,6 +16,8 @@ const UploadPDF = () => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const fileInputRefs = useRef([]);
+  // console.log("fileInputRefs==>", fileInputRefs);
   const onDocumentLoadSuccess = ({ numPages }) => {
     setSuccessMessage("");
     setNumPages(numPages);
@@ -39,36 +41,51 @@ const UploadPDF = () => {
     setPageNumber(1);
   };
 
-  const addMoreFields = () => {
+  const addMoreFields = useCallback(() => {
     setFilesInfo([...filesInfo, initialFileInfo]);
-  };
+  }, [filesInfo]);
+
+  useEffect(() => {
+    const newIndex = filesInfo.length - 1;
+    if (fileInputRefs.current[newIndex]) {
+      fileInputRefs.current[newIndex].focus();
+    }
+  }, [filesInfo.length]);
 
   const removeFields = (indexToRemove) => {
     setFilesInfo(filesInfo.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleFileNameChange = (index, value) => {
-    const updatedFilesInfo = [...filesInfo];
-    updatedFilesInfo[index].name = value;
-    setFilesInfo(updatedFilesInfo);
-  };
+  const handleFileNameChange = useCallback(
+    (index, value) => {
+      const updatedFilesInfo = [...filesInfo];
+      updatedFilesInfo[index].name = value;
+      setFilesInfo(updatedFilesInfo);
+    },
+    [filesInfo]
+  );
 
-  const handleStartPageChange = (index, value) => {
-    const updatedFilesInfo = [...filesInfo];
-    updatedFilesInfo[index].startPage = value;
-    setFilesInfo(updatedFilesInfo);
-  };
+  const handleStartPageChange = useCallback(
+    (index, value) => {
+      const updatedFilesInfo = [...filesInfo];
+      updatedFilesInfo[index].startPage = value;
+      setFilesInfo(updatedFilesInfo);
+    },
+    [filesInfo]
+  );
 
-  const handleEndPageChange = (index, value) => {
-    const updatedFilesInfo = [...filesInfo];
-    updatedFilesInfo[index].endPage = value;
-    setFilesInfo(updatedFilesInfo);
-  };
+  const handleEndPageChange = useCallback(
+    (index, value) => {
+      const updatedFilesInfo = [...filesInfo];
+      updatedFilesInfo[index].endPage = value;
+      setFilesInfo(updatedFilesInfo);
+    },
+    [filesInfo]
+  );
 
-  const handlePdfPathChange = (e) => {
+  const handlePdfPathChange = useCallback((e) => {
     setPdfPath(e.target.value);
-  };
-
+  }, []);
   const clearForm = () => {
     setPdfFile(null);
     setFilesInfo([initialFileInfo]);
@@ -127,6 +144,7 @@ const UploadPDF = () => {
             placeholder="File Name"
             value={info.name}
             onChange={(e) => handleFileNameChange(index, e.target.value)}
+            innerRef={(inputRef) => (fileInputRefs.current[index] = inputRef)}
           />
         </Col>
         <Col md="2">
@@ -200,10 +218,9 @@ const UploadPDF = () => {
 
               <div className="mt-2">
                 <p className="text-success">
-                  Your PDF is uploaded and it has total page range is : {pageNumber || (numPages ? 1 : "--")} to{" "}
-                  {numPages || "--"}
+                  Your PDF is uploaded and it has total page range is :{" "}
+                  {pageNumber || (numPages ? 1 : "--")} to {numPages || "--"}
                 </p>
-      
               </div>
             </>
           )}

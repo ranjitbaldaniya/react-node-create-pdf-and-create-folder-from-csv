@@ -3,7 +3,7 @@ const path = require("path");
 
 const createFolders = (req, res) => {
   const { selectedDoctors, selectedPath } = req.body;
-  // console.log("1412===>", "==>" ,selectedPath )
+  
   if (!Array.isArray(selectedDoctors)) {
     return res.status(400).json({ error: "Invalid request body" });
   }
@@ -13,16 +13,16 @@ const createFolders = (req, res) => {
 
     const existingDoctorNames = fs.readdirSync(appFolderPath);
 
-    // console.log("existingDoctorNames==>",existingDoctorNames)
     selectedDoctors.forEach((doctor) => {
-      const doctorFolderName = `${doctor.doctorName}`;
+      const doctorFolderName = `${doctor.doctorName}`.toUpperCase(); // Capitalize folder name
       if (existingDoctorNames.includes(doctorFolderName)) {
         console.log(`${doctorFolderName} already exists, skipping...`);
         return;
       }
 
       const doctorFolderPath = path.join(appFolderPath, doctorFolderName);
-      const dateFolderPath = path.join(doctorFolderPath, doctor.todaysDate);
+      const formattedDate = formatDate(doctor.todaysDate); // Format date
+      const dateFolderPath = path.join(doctorFolderPath, formattedDate);
 
       if (!fs.existsSync(doctorFolderPath)) {
         fs.mkdirSync(doctorFolderPath, { recursive: true });
@@ -33,19 +33,18 @@ const createFolders = (req, res) => {
 
       let vendorFolderPath;
       if (doctor.vendor === "Geico") {
-        vendorFolderPath = path.join(dateFolderPath, "Geico");
+        vendorFolderPath = path.join(dateFolderPath, "GEICO");
       } else {
-        // Create a 'non-geico' folder and place the vendor folder inside it
-        const nonGeicoFolderPath = path.join(dateFolderPath, "Non-Geico");
+        const nonGeicoFolderPath = path.join(dateFolderPath, "NON-GEICO");
         if (!fs.existsSync(nonGeicoFolderPath)) {
           fs.mkdirSync(nonGeicoFolderPath, { recursive: true });
         }
-        vendorFolderPath = path.join(nonGeicoFolderPath, doctor.vendor);
+        vendorFolderPath = path.join(nonGeicoFolderPath, doctor.vendor.toUpperCase()); // Capitalize vendor name
       }
 
       const reportType =
         doctor.reportType === "Retrospective" ? "Resrospective" : "Prospective";
-      const reportTypeFolderPath = path.join(vendorFolderPath, reportType);
+      const reportTypeFolderPath = path.join(vendorFolderPath, reportType.toUpperCase()); // Capitalize report type
 
       if (!fs.existsSync(reportTypeFolderPath)) {
         fs.mkdirSync(reportTypeFolderPath, { recursive: true });
@@ -53,7 +52,7 @@ const createFolders = (req, res) => {
 
       const finalFolderPath = path.join(
         reportTypeFolderPath,
-        `${doctor.docId} ${doctor.patientName}`
+        `${doctor.docId} ${doctor.patientName}`.toUpperCase() // Capitalize final folder name
       );
       if (!fs.existsSync(finalFolderPath)) {
         fs.mkdirSync(finalFolderPath, { recursive: true });
@@ -77,6 +76,16 @@ const createFolders = (req, res) => {
   }
 };
 
+// Function to format date
+function formatDate(dateString) {
+  const parts = dateString.match(/(\d+)/g);
+  if (parts.length === 3) {
+    return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  }
+  return dateString; // Return as is if not in expected format
+}
+
 module.exports = {
   createFolders,
 };
+  
