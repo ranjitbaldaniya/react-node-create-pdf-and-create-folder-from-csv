@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./component/Home";
 import ExtractPdf from "./component/extractPdf";
 import CreateFolder from "./component/createFolder";
+import Footer from "./component/Footer";
 function App() {
   return (
     <div className="App">
@@ -14,6 +15,7 @@ function App() {
           <Route path="/ExtractPdf" element={<ExtractPdf />} />
         </Routes>
       </BrowserRouter>
+      <Footer/>
     </div>
   );
 }

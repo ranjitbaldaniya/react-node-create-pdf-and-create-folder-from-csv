@@ -192,7 +192,7 @@ const CreateFolder = () => {
 
   return (
     <Container>
-      <Row>
+      {/* <Row>
         <Col md={2} className="mt-5">
           <Link to={"/"}>
             <Button color="dark">Back</Button>
@@ -207,6 +207,21 @@ const CreateFolder = () => {
               onChange={handleFileUpload}
               id="fileInput"
             />
+            {error && <div className="text-danger">{error}</div>}
+          </div>
+        </Col>
+      </Row> */}
+      <Row className="justify-content-center align-items-center h-100 mt-2">
+        <Col md={2} className="">
+          <Link to={'/'}>
+            <Button color="dark">Back</Button>
+          </Link>
+        </Col>
+        <Col md={10} className="mt-5">
+          <div className="border border-black p-3 rounded mb-3">
+            <h1>Excel Folder Creator</h1>
+            <hr />
+            <input type="file" accept=".xlsx" onChange={handleFileUpload} id="fileInput" />
             {error && <div className="text-danger">{error}</div>}
           </div>
         </Col>
@@ -295,7 +310,7 @@ const CreateFolder = () => {
                             />
                             <div>
                               <Row>
-                                {doctorData.map((doctor, index) => (
+                                {/* {doctorData.map((doctor, index) => (
                                   <Col md={3} key={index}>
                                     <Card
                                       className="mb-3 "
@@ -315,8 +330,9 @@ const CreateFolder = () => {
                                               selectedDoctor.docId ===
                                               doctor.docId
                                           )}
+                                          
                                           onChange={() =>
-                                            handleDoctorCheckboxChange(doctor)
+                                            handleDoctorCheckboxChange(e,doctor)
                                           }
                                           style={{
                                             position: "absolute",
@@ -343,7 +359,50 @@ const CreateFolder = () => {
                                       </CardBody>
                                     </Card>
                                   </Col>
-                                ))}
+                                ))} */}
+                                 {doctorData.map((doctor, index) => (
+                                    <Col md={3} key={index}>
+                                      <Card
+                                        className="mb-3 "
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => handleDoctorCheckboxChange(doctor)}
+                                      >
+                                        <CardBody style={{ position: 'relative' }}>
+                                          <Input
+                                            type="checkbox"
+                                            id={`doctor-${doctor.docId}`}
+                                            checked={selectedDoctors.some(
+                                              (selectedDoctor) =>
+                                                selectedDoctor.docId === doctor.docId
+                                            )}
+                                            onChange={(e) => {
+                                              e.stopPropagation() // Prevent parent onClick event from firing
+                                              handleDoctorCheckboxChange(e,doctor)
+                                            }}
+                                            style={{
+                                              position: 'absolute',
+                                              top: '-2px',
+                                              right: '1px',
+                                              cursor: 'pointer',
+                                              // color:"red",
+                                              // background:"red"
+                                              border: '1px solid gray'
+                                            }}
+                                          />
+                                          <p
+                                            htmlFor={`doctor-${doctor.docId}`}
+                                            className="ml-2 fw-bold"
+                                          >
+                                            {doctor.doctorName} - {doctor.docId}
+                                          </p>
+                                          <p className="fw-bold">
+                                            Patient Name :- {doctor.patientName}
+                                          </p>
+                                          <p className="fw-bold">Date :- {doctor.todaysDate}</p>
+                                        </CardBody>
+                                      </Card>
+                                    </Col>
+                                  ))}
                               </Row>
                             </div>
                           </CardBody>

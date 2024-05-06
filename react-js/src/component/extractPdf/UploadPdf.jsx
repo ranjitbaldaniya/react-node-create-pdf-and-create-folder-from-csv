@@ -190,7 +190,7 @@ const UploadPDF = () => {
 
   return (
     <Container fluid>
-      <Row className="justify-content-center align-items-center h-100 mt-2">
+      {/* <Row className="justify-content-center align-items-center h-100 mt-2">
         <Col md={2} className="mt-5">
           <Link to={"/"}>
             <Button color="dark">Back</Button>
@@ -202,6 +202,21 @@ const UploadPDF = () => {
             <p className="font-bold mt-2 text-center text-primary me-5">
               Drag 'n' drop a PDF file here, or click to select one
             </p>
+          </div>
+        </Col>
+      </Row> */}
+
+      <Row className="justify-content-center align-items-center h-100 mt-2">
+        <Col md={2}>
+          <Link to={"/"}>
+            <Button color="dark">Back</Button>
+          </Link>
+        </Col>
+        <Col xs="12" md="8" className="mt-5">
+          <div className="border border-black p-3 rounded mb-3">
+            <h1>PDF Creator</h1>
+            <hr />
+            <input type="file" onChange={(e) => onDrop(e.target.files)} />
           </div>
         </Col>
       </Row>
