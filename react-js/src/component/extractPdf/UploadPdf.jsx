@@ -6,7 +6,8 @@ import { Container, Row, Col, Button, Input } from "reactstrap";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 const UploadPDF = () => {
-  const initialFileInfo = { name: "", startPage: "", endPage: "" };
+  // const initialFileInfo = { name: "", startPage: "", endPage: "" };
+  const initialFileInfo = { name: "", selectedPages: "" };
 
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
@@ -65,19 +66,28 @@ const UploadPDF = () => {
     [filesInfo]
   );
 
-  const handleStartPageChange = useCallback(
-    (index, value) => {
-      const updatedFilesInfo = [...filesInfo];
-      updatedFilesInfo[index].startPage = value;
-      setFilesInfo(updatedFilesInfo);
-    },
-    [filesInfo]
-  );
+  // const handleStartPageChange = useCallback(
+  //   (index, value) => {
+  //     const updatedFilesInfo = [...filesInfo];
+  //     updatedFilesInfo[index].startPage = value;
+  //     setFilesInfo(updatedFilesInfo);
+  //   },
+  //   [filesInfo]
+  // );
 
-  const handleEndPageChange = useCallback(
+  // const handleEndPageChange = useCallback(
+  //   (index, value) => {
+  //     const updatedFilesInfo = [...filesInfo];
+  //     updatedFilesInfo[index].endPage = value;
+  //     setFilesInfo(updatedFilesInfo);
+  //   },
+  //   [filesInfo]
+  // );
+
+  const handleSelectedPagesChange = useCallback(
     (index, value) => {
       const updatedFilesInfo = [...filesInfo];
-      updatedFilesInfo[index].endPage = value;
+      updatedFilesInfo[index].selectedPages = value;
       setFilesInfo(updatedFilesInfo);
     },
     [filesInfo]
@@ -87,6 +97,10 @@ const UploadPDF = () => {
     setPdfPath(e.target.value);
   }, []);
   const clearForm = () => {
+    const input = document.getElementById("fileInput");
+    if (input) {
+      input.value = null;
+    }
     setPdfFile(null);
     setFilesInfo([initialFileInfo]);
     setPdfPath("");
@@ -97,7 +111,7 @@ const UploadPDF = () => {
   const createPdf = async () => {
     // Check if any required field is empty
     const isAnyFieldEmpty = filesInfo.some(
-      (info) => !info.name || !info.startPage || !info.endPage
+      (info) => !info.name || !info.selectedPages
     );
 
     if (!pdfPath || isAnyFieldEmpty) {
@@ -118,9 +132,19 @@ const UploadPDF = () => {
         method: "POST",
         body: formData,
       });
-
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 400) {
+          setError(errorData.error);
+        } else {
+          setError("Internal Server Error");
+        }
+        return;
+      }
       const responseData = await response.json();
       console.log("res===>", responseData);
+
+   
       clearForm();
     } catch (error) {
       console.error("Error:", error);
@@ -147,20 +171,29 @@ const UploadPDF = () => {
             innerRef={(inputRef) => (fileInputRefs.current[index] = inputRef)}
           />
         </Col>
-        <Col md="2">
+        {/* <Col md="2">
           <Input
             type="number"
             placeholder="Start Page"
             value={info.startPage}
             onChange={(e) => handleStartPageChange(index, e.target.value)}
           />
-        </Col>
-        <Col md="2">
+        </Col> */}
+        {/* <Col md="2">
           <Input
             type="number"
             placeholder="End Page"
             value={info.endPage}
             onChange={(e) => handleEndPageChange(index, e.target.value)}
+          />
+        </Col> */}
+
+        <Col md="3">
+          <Input
+            type="text"
+            placeholder="Add Page Numbers (Ex : 1,2,3,8,10..)"
+            value={info.selectedPages}
+            onChange={(e) => handleSelectedPagesChange(index, e.target.value)}
           />
         </Col>
 
@@ -216,7 +249,7 @@ const UploadPDF = () => {
           <div className="border border-black p-3 rounded mb-3">
             <h1>PDF Creator</h1>
             <hr />
-            <input type="file" onChange={(e) => onDrop(e.target.files)} />
+            <input type="file" onChange={(e) => onDrop(e.target.files)} id="fileInput"/>
           </div>
         </Col>
       </Row>

@@ -3,7 +3,7 @@ const path = require("path");
 
 const createFolders = (req, res) => {
   const { selectedDoctors, selectedPath } = req.body;
-  
+
   if (!Array.isArray(selectedDoctors)) {
     return res.status(400).json({ error: "Invalid request body" });
   }
@@ -30,21 +30,37 @@ const createFolders = (req, res) => {
       if (!fs.existsSync(dateFolderPath)) {
         fs.mkdirSync(dateFolderPath, { recursive: true });
       }
-
+      console.log("vendor ==>", doctor.vendor);
+      // let vendorFolderPath;
+      // if (doctor.vendor === "Geico") {
+      //   vendorFolderPath = path.join(dateFolderPath, "GEICO");
+      // } else {
+      //   const nonGeicoFolderPath = path.join(dateFolderPath, "NON-GEICO");
+      //   if (!fs.existsSync(nonGeicoFolderPath)) {
+      //     fs.mkdirSync(nonGeicoFolderPath, { recursive: true });
+      //   }
+      //   vendorFolderPath = path.join(nonGeicoFolderPath, doctor.vendor.toUpperCase()); // Capitalize vendor name
+      // }
       let vendorFolderPath;
-      if (doctor.vendor === "Geico") {
+      if (doctor.vendor === "GEICO") {
         vendorFolderPath = path.join(dateFolderPath, "GEICO");
       } else {
         const nonGeicoFolderPath = path.join(dateFolderPath, "NON-GEICO");
         if (!fs.existsSync(nonGeicoFolderPath)) {
           fs.mkdirSync(nonGeicoFolderPath, { recursive: true });
         }
-        vendorFolderPath = path.join(nonGeicoFolderPath, doctor.vendor.toUpperCase()); // Capitalize vendor name
+        vendorFolderPath = path.join(
+          nonGeicoFolderPath,
+          doctor.vendor.toUpperCase()
+        ); // Capitalize vendor name
       }
 
       const reportType =
         doctor.reportType === "Retrospective" ? "Resrospective" : "Prospective";
-      const reportTypeFolderPath = path.join(vendorFolderPath, reportType.toUpperCase()); // Capitalize report type
+      const reportTypeFolderPath = path.join(
+        vendorFolderPath,
+        reportType.toUpperCase()
+      ); // Capitalize report type
 
       if (!fs.existsSync(reportTypeFolderPath)) {
         fs.mkdirSync(reportTypeFolderPath, { recursive: true });
@@ -88,4 +104,3 @@ function formatDate(dateString) {
 module.exports = {
   createFolders,
 };
-  

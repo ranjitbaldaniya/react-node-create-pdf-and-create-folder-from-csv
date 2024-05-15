@@ -7,8 +7,8 @@ const createPdf = async (req, res) => {
   const filesInfo = JSON.parse(req.body.selectedPages);
   let pdfPath = req.body.pdfPath;
 
-  // console.log("filesInfo", filesInfo);
-  // console.log("pdfPath", pdfPath);
+  console.log("filesInfo", filesInfo);
+  console.log("pdfPath", pdfPath);
 
   if (!pdfFilePath) {
     return res.status(400).send("PDF file path is missing");
@@ -26,57 +26,54 @@ const createPdf = async (req, res) => {
     // Remove trailing slash from pdfPath
     // console.log("pdfPath========>", pdfPath.slice(1, -1));
 
-    pdfPath = path.normalize( pdfPath.slice(1, -1));
+    pdfPath = path.normalize(pdfPath.slice(1, -1));
     // console.log("pdfPath===>", pdfPath);
 
     // Create a new PDF containing selected pages for each file
     for (const fileInfo of filesInfo) {
-      const startPage = parseInt(fileInfo.startPage);
-      const endPage = parseInt(fileInfo.endPage);
+      console.log("fileinfor ==>", fileInfo);
 
-      if (!startPage || !endPage) {
-        throw new Error("Invalid start page or end page");
-      }
-
-      if (
-        startPage > endPage ||
-        startPage < 1 ||
-        endPage > pdfDoc.getPageCount()
-      ) {
-        throw new Error("Invalid page range");
-      }
+      // Extract file information
+      const fileName = fileInfo.name;
+      const selectedPages = fileInfo.selectedPages.split(",").map(Number);
 
       // Create a new PDF containing only selected pages
       const newPdfDoc = await PDFDocument.create();
 
-      for (let i = startPage; i <= endPage; i++) {
-        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i - 1]);
+      for (const pageNumber of selectedPages) {
+        if (pageNumber < 1 || pageNumber > pdfDoc.getPageCount()) {
+          throw new Error(`Invalid page number: ${pageNumber}`);
+        }
+        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [
+          pageNumber - 1,
+        ]);
         newPdfDoc.addPage(copiedPage);
       }
 
       // Serialize the new PDF to bytes
       const newPdfBytes = await newPdfDoc.save();
 
-      // Use path.join() to concatenate directory paths safely
-      const directoryPath = pdfPath;
-      console.log("directoryPath===>", directoryPath);
-      
       // Ensure the directory exists
-      await fs.mkdir(directoryPath, { recursive: true });
+      await fs.mkdir(pdfPath, { recursive: true });
 
       // Define the path for the created PDF file
-      const fileName = `${fileInfo.name}.pdf`;
-      const filePath = path.join(directoryPath, fileName);
-      // console.log("filePath===>", filePath);
-      
+      const filePath = path.join(pdfPath, `${fileName}.pdf`);
+
       // Write the PDF bytes to the file system
       await fs.writeFile(filePath, newPdfBytes);
-    }
 
+      console.log(`PDF created: ${filePath}`);
+    }
     res.status(200).json({ message: "PDFs created successfully" });
   } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Internal Server Error");
+    console.log("Error==>", error);
+    if (error.message.startsWith("Invalid page number")) {
+      res.status(400).json({ error: error.message });
+    } else if (error.message === "No files info provided") {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
   }
 };
 

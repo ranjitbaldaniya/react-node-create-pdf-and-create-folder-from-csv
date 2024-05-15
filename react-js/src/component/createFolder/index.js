@@ -18,11 +18,11 @@ import * as XLSX from "xlsx";
 const CreateFolder = () => {
   const [error, setError] = useState(null);
   const [excelData, setExcelData] = useState([]);
-  // console.log("excelData  ===>", excelData);
+  console.log("excelData  ===>", excelData);
   const [successMessage, setSuccessMessage] = useState("");
 
   const [selectedDoctors, setSelectedDoctors] = useState([]);
-  // console.log("selectedDoctors ===>", selectedDoctors);
+  console.log("selectedDoctors ===>", selectedDoctors);
 
   const [selectedPath, setSelectedPath] = useState("");
 
@@ -44,19 +44,33 @@ const CreateFolder = () => {
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        // console.log("parsed xlsx data ===>", parsedData);
+        console.log("parsed xlsx data ===>", parsedData);
 
         // Filter out rows with empty data
+        // const filteredData = parsedData.filter(
+        //   (row) =>
+        //     row.length > 0 &&
+        //     row.some(
+        //       (cell) => cell !== null && cell !== undefined && cell !== ""
+        //     )
+        // );
         const filteredData = parsedData.filter(
           (row) =>
             row.length > 0 &&
-            row.some((cell) => cell !== null && cell !== undefined)
+            row.some(
+              (cell) =>
+                typeof cell === "string" &&
+                cell.trim() !== "" &&
+                cell !== null &&
+                cell !== undefined
+            )
         );
-        // console.log("filteredData ===>", filteredData);
+
+        console.log("filteredData ===>", filteredData);
 
         const lastDate = filteredData[filteredData.length - 1][1];
 
-        // console.log("lastDate ===>", lastDate);
+        console.log("lastDate ===>", lastDate);
 
         // Group data based on the last date
         const groupedData = {};
@@ -70,7 +84,7 @@ const CreateFolder = () => {
           }
         });
 
-        // console.log("Grouped data based on the last date:", groupedData);
+        console.log("Grouped data based on the last date:", groupedData);
 
         // console.log(
         //   "Grouped data based on Today's Date:==>",
@@ -213,7 +227,7 @@ const CreateFolder = () => {
       </Row> */}
       <Row className="justify-content-center align-items-center h-100 mt-2">
         <Col md={2} className="">
-          <Link to={'/'}>
+          <Link to={"/"}>
             <Button color="dark">Back</Button>
           </Link>
         </Col>
@@ -221,7 +235,12 @@ const CreateFolder = () => {
           <div className="border border-black p-3 rounded mb-3">
             <h1>Excel Folder Creator</h1>
             <hr />
-            <input type="file" accept=".xlsx" onChange={handleFileUpload} id="fileInput" />
+            <input
+              type="file"
+              accept=".xlsx"
+              onChange={handleFileUpload}
+              id="fileInput"
+            />
             {error && <div className="text-danger">{error}</div>}
           </div>
         </Col>
@@ -360,49 +379,59 @@ const CreateFolder = () => {
                                     </Card>
                                   </Col>
                                 ))} */}
-                                 {doctorData.map((doctor, index) => (
-                                    <Col md={3} key={index}>
-                                      <Card
-                                        className="mb-3 "
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => handleDoctorCheckboxChange(doctor)}
+                                {doctorData.map((doctor, index) => (
+                                  <Col md={3} key={index}>
+                                    <Card
+                                      className="mb-3 "
+                                      style={{ cursor: "pointer" }}
+                                      onClick={() =>
+                                        handleDoctorCheckboxChange(doctor)
+                                      }
+                                    >
+                                      <CardBody
+                                        style={{ position: "relative" }}
                                       >
-                                        <CardBody style={{ position: 'relative' }}>
-                                          <Input
-                                            type="checkbox"
-                                            id={`doctor-${doctor.docId}`}
-                                            checked={selectedDoctors.some(
-                                              (selectedDoctor) =>
-                                                selectedDoctor.docId === doctor.docId
-                                            )}
-                                            onChange={(e) => {
-                                              e.stopPropagation() // Prevent parent onClick event from firing
-                                              handleDoctorCheckboxChange(e,doctor)
-                                            }}
-                                            style={{
-                                              position: 'absolute',
-                                              top: '-2px',
-                                              right: '1px',
-                                              cursor: 'pointer',
-                                              // color:"red",
-                                              // background:"red"
-                                              border: '1px solid gray'
-                                            }}
-                                          />
-                                          <p
-                                            htmlFor={`doctor-${doctor.docId}`}
-                                            className="ml-2 fw-bold"
-                                          >
-                                            {doctor.doctorName} - {doctor.docId}
-                                          </p>
-                                          <p className="fw-bold">
-                                            Patient Name :- {doctor.patientName}
-                                          </p>
-                                          <p className="fw-bold">Date :- {doctor.todaysDate}</p>
-                                        </CardBody>
-                                      </Card>
-                                    </Col>
-                                  ))}
+                                        <Input
+                                          type="checkbox"
+                                          id={`doctor-${doctor.docId}`}
+                                          checked={selectedDoctors.some(
+                                            (selectedDoctor) =>
+                                              selectedDoctor.docId ===
+                                              doctor.docId
+                                          )}
+                                          onChange={(e) => {
+                                            e.stopPropagation(); // Prevent parent onClick event from firing
+                                            handleDoctorCheckboxChange(
+                                              e,
+                                              doctor
+                                            );
+                                          }}
+                                          style={{
+                                            position: "absolute",
+                                            top: "-2px",
+                                            right: "1px",
+                                            cursor: "pointer",
+                                            // color:"red",
+                                            // background:"red"
+                                            border: "1px solid gray",
+                                          }}
+                                        />
+                                        <p
+                                          htmlFor={`doctor-${doctor.docId}`}
+                                          className="ml-2 fw-bold"
+                                        >
+                                          {doctor.doctorName} - {doctor.docId}
+                                        </p>
+                                        <p className="fw-bold">
+                                          Patient Name :- {doctor.patientName}
+                                        </p>
+                                        <p className="fw-bold">
+                                          Date :- {doctor.todaysDate}
+                                        </p>
+                                      </CardBody>
+                                    </Card>
+                                  </Col>
+                                ))}
                               </Row>
                             </div>
                           </CardBody>
